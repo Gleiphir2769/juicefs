@@ -20,6 +20,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"github.com/juicedata/juicefs/pkg/apiserver"
 	"log"
 	"net"
 	"net/http"
@@ -49,6 +50,10 @@ import (
 	"github.com/juicedata/juicefs/pkg/utils"
 	"github.com/juicedata/juicefs/pkg/version"
 	"github.com/juicedata/juicefs/pkg/vfs"
+)
+
+const (
+	apiServerAddrInner = "http://127.0.0.1:8080"
 )
 
 func cmdMount() *cli.Command {
@@ -554,8 +559,28 @@ func updateFstab(c *cli.Context) error {
 
 func mount(c *cli.Context) error {
 	setup(c, 2)
-	addr := c.Args().Get(0)
+	volume := c.Args().Get(0)
 	mp := c.Args().Get(1)
+
+	ak := c.String("access-key")
+	sk := c.String("secret-key")
+
+	server, err := apiserver.NewApiServer(apiServerAddrInner)
+	if err != nil {
+		return err
+	}
+
+	authVolume, err := server.AuthMount(volume, ak, sk)
+	if err != nil {
+		return err
+	}
+
+	if !authVolume.Auth {
+		return fmt.Errorf("Access key %s or secret key %s for %s is not correct, please check again",
+			ak, sk, authVolume.BucketName)
+	}
+
+	addr := authVolume.MetaStore
 
 	metaConf := getMetaConf(c, mp, c.Bool("read-only") || utils.StringContains(strings.Split(c.String("o"), ","), "ro"))
 	metaConf.CaseInsensi = strings.HasSuffix(mp, ":") && runtime.GOOS == "windows"

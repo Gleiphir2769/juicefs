@@ -123,6 +123,14 @@ func mount_flags() []cli.Flag {
 			Usage: "disable syslog",
 		},
 		&cli.StringFlag{
+			Name:  "access-key",
+			Usage: "the access key of volume bucket",
+		},
+		&cli.StringFlag{
+			Name:  "secret-key",
+			Usage: "the secret key of volume bucket",
+		},
+		&cli.StringFlag{
 			Name:  "log",
 			Value: path.Join(defaultLogDir, "juicefs.log"),
 			Usage: "path of log file when running in background",

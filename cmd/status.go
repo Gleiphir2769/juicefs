@@ -95,7 +95,10 @@ func status(ctx *cli.Context) error {
 	if err != nil {
 		logger.Fatalf("load setting: %s", err)
 	}
-	format.RemoveSecret()
+	if err = format.Decrypt(); err != nil {
+		logger.Fatalf("decrypt secrets: %s", err)
+	}
+	//format.RemoveSecret()
 
 	if sid := ctx.Uint64("session"); sid != 0 {
 		s, err := m.GetSession(sid, true)
